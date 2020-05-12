@@ -62,19 +62,45 @@ def getConjClasses(n,f):
             classes.append(conjClass)
     return classes
 
+def blackoutForBottomLeft(mat, n):
+    toBlackout = []
+    for i in range(n):
+        for j in range(n):
+            if j >= i:
+                toBlackout.append([i,j])
+    return blackout(mat, toBlackout)
+
 
 ############################# Experiments ######################################
-p = 2
+p = 3
 f = GF(p)
-n = 3
+n = 4
 M = MatrixSpace(f,n,n)
 
-classes = getConjClasses(n,f)
+
+k = getUTn(n,f)
+found = []
+classes = []
+for mat in M:
+    current = blackoutForBottomLeft(mat, n)
+    if current not in found:
+        found.append(current)
+        conjClass = [current]
+        for m in k:
+            conjugated = m*current*m.inverse()
+            blacked = blackoutForBottomLeft(conjugated, n)
+            if blacked not in conjClass:
+                found.append(blacked)
+                conjClass.append(blacked)
+        classes.append(conjClass)
+
 for c in classes:
-    for elem in c:
-        print(elem)
-        print("----------")
-    print("#################")
-    print("#################")
+    print("Size: " + str(len(c)))
+    for mat in c:
+        print(mat)
+        print("--------")
+    print("########")
+
+print(len(classes))
 
 
