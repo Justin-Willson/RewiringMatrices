@@ -1,1 +1,4 @@
 *.sage.py
+*.aux
+*.log
+*.pdf
