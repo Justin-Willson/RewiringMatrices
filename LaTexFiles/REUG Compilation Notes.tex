@@ -1,0 +1,113 @@
+\documentclass[12pt]{article}
+\usepackage[left=1in, right=1in, top =1.25in, bottom=1in]{geometry}
+
+%Packages
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{bbm, bm}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{arrows}
+\usepackage[smalltableaux, baseline]{ytableau}
+\usepackage{stmaryrd}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[shortlabels]{enumitem}
+%\usepackage{showframe}
+
+
+%Theorem Styles
+\newtheorem{thm}{Theorem}
+\newtheorem{prop}{Proposition}
+\newtheorem{lem}{Lemma}
+\newtheorem{cor}{Corollary}
+\newtheorem{conj}{Conjecture}
+\theoremstyle{definition}
+\newtheorem{ex}{Example}
+\newtheorem*{exc}{Questions}
+\newtheorem{defn}{Definition}
+\newtheorem{problem}{Problem}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remark}
+
+%Macros
+\newcommand{\UT}{\mathrm{UT}}
+\newcommand{\GL}{\mathrm{GL}}
+\newcommand{\Mat}{\mathrm{Mat}}
+\newcommand{\ut}{\mathfrak{ut}}
+
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\FF}{\mathbb{F}}
+
+\renewcommand{\hat}{\widehat}
+\renewcommand{\tilde}{\widetilde}
+\newcommand{\ds}{\displaystyle}
+
+
+%Header
+\pagestyle{fancy}
+\rhead{}
+\lhead{REU/G Compiled Notes}
+\cfoot{\thepage}
+
+\begin{document} 
+% Feel free to change phrasing/add stuff - having a hard time figuring out how to articulate this
+We are considering the action of $\UT_n(\FF_p)$ on $M_n$ by conjugation.
+
+Create an equivalence relation by blacking out areas and saying that two matrices are equivalent if they are conjugate outside of the blacked out area.
+
+\begin{problem}
+Consider a matrix where a box is nestled against the diagonal and all entries of the box except for left most column is blacked out. Find the number of conjugacy classes for matrices of this form.
+\end{problem}
+\begin{defn} $T_{n,i}=\{S\in Mat_n(\FF_p):\:j<i+1$ and $k>i,\implies s_{kj}=0\}$ where $s_{kj}\in\FF_P$ and $T_{n,i}\subset \Mat_{n}(\FF_P)$. (The set of matrices in question)
+\end{defn}
+\begin{defn}
+ $A\sim_{box}B$ for $A,B\in T$ if $A=CBC^{-1}$ for some $C\in \UT_n(\FF_p)$ or $A=B+D$ where $d_{kj}=0$ if $j\geq i+1$ or $k>i$. (Equivalence relation in question)
+\end{defn}
+\begin{prop}
+$|\sim_{box}|=i(p-1)+1$
+\end{prop}
+\begin{rem}
+Since all entries to the left of the $i+1$st column are zero and matrices are equivalent if their entries in the $i+1$st column are the same, the portion of the group action which adds a column to another can be ignored. As such, we can represent elements of $T_{i,n}$ under $\sim_{box}$ by column vectors of height $i$.
+\end{rem}
+\begin{proof}
+	Consider the element represented by $$(p-1)e_n=\begin{bmatrix} 0\\ \vdots\\ 0\\\vdots\\ p-1\\\vdots\\0 \end{bmatrix}$$ We can see that $(p-1)e_m\sim_{box} v+(p-1)e_n$ where $v=a_1e_1+a_2e_2+\hdots+a_{n-1}e_{n-1}$ and $a_m\in\FF_p$. This is because the group action is reduced to adding multiples of an entry to any entry above it and therefore the $m$th can be changed to $a_m$ by adding $a_m(p-1)^{-1}$ times the $n$th row to the $m$th row. This process can be repeated to get any desired value in any position above $n$. This process is also applicable when looking at  $qe_n$ with $q\in\FF_p$. This gives us $(p-1)$ classes where position $n$ is the the last non-zero entry. As such there are $(p-1)$ classes for each of the $i$ rows and if we include the class represented by the zero vector we get $|\sim_{box}|=i(p-1)+1$
+\end{proof}
+\begin{problem}
+
+Let $1\leq i_0 <i_1 <\ldots <i_k <n$. Define a shading on our matrices such that for each $i_l$ the column of entries from $(i,i+1)$ to $(1,i+1)$ is not shaded and all entries to the right of that column are shaded. This results in a set of $(k+1)$ columns that can take values while the rest of the entries are shaded. We claim that the number of conjugacy classes is given by 
+$$
+    (i_0)(p-1)+1)\prod_{l=1}^k \left( (i_l-i_{l-1})(p-1)+1\right).
+$$
+\end{problem}
+
+\begin{proof}
+    We prove this theorem by induction on $k$. The $k=0$ case has been done previously, so we assume that our count is correct for any value less than $k$. Consider the $i_k$ column, we claim that any conjugation action that modifies the column does not change any of the other columns. If this is the case, then the total number of conjugacy classes must be the product of the number of cases for $\{ i_0,\ldots,i_{k-1}\}$ times the number of conjugacy classes for the $i_k$ column, which is exactly what our formula encodes. 
+
+    To show this is the case, let $(a,b)$ denote the conjugacy action that adds column $a$ to column $b$ and row $b$ to row $a$ and has $a<b$. Then for this action to modify our column, it must be that $a,b\in \{ i_{k-1}+1,i_{k-1}+2,\ldots, j\}$. If this is the case, we add row $a$ to row $b$, which cannot change any of the other columns as all other columns have $0$'s in those rows. Then we must add column $a$ to column $b$. Since no two columns have non-shaded entries in the same row, this does not change any of the columns. Thus our count is correct.
+\end{proof}
+
+\begin{problem}
+Consider a matrix where a box is nestled against the diagonal and all entries of the box except for the left most column and bottom row are blacked out. Find the number of conjugacy classes for matrices of this form.
+\end{problem}
+
+\begin{problem}
+Consider a matrix where there are two overlapping boxes nestled against the diagonal and every entry in both box except for the left most column of both boxes is blacked out.
+\end{problem}
+
+\begin{problem}
+[insert description of Justin's inverted L shape]
+\end{problem}
+
+\textbf{Other problems}
+Expand problems 1 and 2 to include multiple columns or have blacked out area be any convex region. Combine problems to consider blacking out everything except for a boundary along the diagonal.
+
+Other things we have worked on so far: finding conjugacy classes and 2-sided classes for  $M_2(\FF_2)$, find equivalency classes in $M_3(\mathbb{F}_2)$ with center blacked out, staircase problem.
+
+
+
+\end{document}
+
+
