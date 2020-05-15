@@ -9,7 +9,6 @@ def getUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
         toRet.append(getUTnMatFromList(n, f, filling))
     return toRet
 
-
 def getUTnMatFromList(n: int, f: sage.rings.finite_rings.finite_field_prime_modn, l: list):
     #((n-1)*n)/2 is the number of entries above the diagonal
     if len(l) != ((n-1)*n)/2:
@@ -45,12 +44,11 @@ def blackout(mat: sage.matrix, entries: list):
         mat[entry[0],entry[1]] = 0
     return mat
 
-def getConjClasses(n,f):
-    M = MatrixSpace(f,n,n)
+def getConjClasses(toSearch, n,f):
     found = []
     classes = []
     conjugators = getUTn(n,f)
-    for mat in M:
+    for mat in toSearch:
         if mat not in found:
             found.append(mat)
             conjClass = [mat]
@@ -62,7 +60,7 @@ def getConjClasses(n,f):
             classes.append(conjClass)
     return classes
 
-def blackoutForBottomLeft(mat, n):
+def blackoutForBottomLeft(mat: sage.matrix, n: int):
     toBlackout = []
     for i in range(n):
         for j in range(n):
@@ -70,37 +68,30 @@ def blackoutForBottomLeft(mat, n):
                 toBlackout.append([i,j])
     return blackout(mat, toBlackout)
 
+def fillMatFromList(toFill: list, entries: list, n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
+    if len(toFill) != len(entries):
+        raise NameError('Inputs must have the same length')
 
-############################# Experiments ######################################
-p = 3
-f = GF(p)
-n = 4
-M = MatrixSpace(f,n,n)
+    mat = MatrixSpace(f,n,n).identity_matrix() - MatrixSpace(f,n,n).identity_matrix()
+    for i in range(len(entries)):
+        e = toFill[i]
+        mat[e[0],e[1]] = entries[i]
 
+    return mat
 
-k = getUTn(n,f)
-found = []
-classes = []
-for mat in M:
-    current = blackoutForBottomLeft(mat, n)
-    if current not in found:
-        found.append(current)
-        conjClass = [current]
-        for m in k:
-            conjugated = m*current*m.inverse()
-            blacked = blackoutForBottomLeft(conjugated, n)
-            if blacked not in conjClass:
-                found.append(blacked)
-                conjClass.append(blacked)
-        classes.append(conjClass)
+def getMatsOfShape(shape: list, n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
+    toRet = []
+    fillings = getListOfLength(len(shape),f)
+    for filling in fillings:
+        toRet.append(fillMatFromList(shape, filling, n, f))
+    return toRet
 
-for c in classes:
-    print("Size: " + str(len(c)))
-    for mat in c:
-        print(mat)
-        print("--------")
-    print("########")
-
-print(len(classes))
-
+def printClasses(classes):
+    for c in classes:
+        print("Size: " + str(len(c)))
+        for e in c:
+            print(e)
+            print("------")
+        print("######")
+    print("Number of classes: " + str(len(classes)))
 
