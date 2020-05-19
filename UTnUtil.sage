@@ -57,12 +57,16 @@ def blackout(mat: sage.matrix, entries: list):
         mat[entry[0],entry[1]] = 0
     return mat
 
-def getConjClasses(toSearch, toBlackout, n,f):
+def getConjClasses(toSearch, toBlackout, n,f, v=False):
     found = []
     classes = []
     conjugators = getElemUTn(n,f)
     for mat in toSearch:
         if mat not in found:
+            if v:
+                print("Found new class with rep:")
+                print(mat)
+                print("Current number of classes: " + str(len(classes)+1)) #have to add one since current isn' added yet
             stack = [mat]
             found.append(mat)
             conjClass = [mat]
@@ -76,6 +80,8 @@ def getConjClasses(toSearch, toBlackout, n,f):
                         conjClass.append(current)
                         stack.append(current)
             classes.append(conjClass)
+            if v:
+                print("This conjugacy class has size: " + str(len(conjClass)))
     return classes
 
 def blackoutForBottomLeft(mat: sage.matrix, n: int):
