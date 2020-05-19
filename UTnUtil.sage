@@ -9,6 +9,19 @@ def getUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
         toRet.append(getUTnMatFromList(n, f, filling))
     return toRet
 
+def getElemUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
+    toRet = []
+    fillings = []
+    l = ((n-1)*n)/2
+    for i in range(l):
+        toAdd = [0]*int(l)
+        toAdd[i] = 1
+        fillings.append(toAdd)
+
+    for filling in fillings:
+        toRet.append(getUTnMatFromList(n, f, filling))
+    return toRet
+
 def getUTnMatFromList(n: int, f: sage.rings.finite_rings.finite_field_prime_modn, l: list):
     #((n-1)*n)/2 is the number of entries above the diagonal
     if len(l) != ((n-1)*n)/2:
@@ -44,19 +57,24 @@ def blackout(mat: sage.matrix, entries: list):
         mat[entry[0],entry[1]] = 0
     return mat
 
-def getConjClasses(toSearch, n,f):
+def getConjClasses(toSearch, toBlackout, n,f):
     found = []
     classes = []
-    conjugators = getUTn(n,f)
+    conjugators = getElemUTn(n,f)
     for mat in toSearch:
         if mat not in found:
+            stack = [mat]
             found.append(mat)
             conjClass = [mat]
-            for c in conjugators:
-                current = c*mat*c.inverse()
-                if current not in conjClass:
-                    found.append(current)
-                    conjClass.append(current)
+            while len(stack) > 0:
+                n = stack.pop()
+                for c in conjugators:
+                    raw = c*n*c.inverse()
+                    current = blackout(raw,toBlackout)
+                    if current not in conjClass:
+                        found.append(current)
+                        conjClass.append(current)
+                        stack.append(current)
             classes.append(conjClass)
     return classes
 
