@@ -1,6 +1,9 @@
 ############################# Functions ######################################
 
 #Gets the unipotent upertriangular nxn matrices over the field f
+#It does so by generating all possible ways to fill in the entries
+#above the diagonal and then using the getUTnMatFromList function
+#to turn them into matrices
 def getUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
     toRet = []
     fillings = getListOfLength(((n-1)*n)/2, f)
@@ -9,6 +12,10 @@ def getUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
         toRet.append(getUTnMatFromList(n, f, filling))
     return toRet
 
+#Gets the elements of UTn that have the form I +e_ij,
+#That is the elements with exactly one 1 above the diagonal
+#It does so by making lists that have one 1 and filling in upper triangular matrices from that list
+#using the getUTnMatFromList function
 def getElemUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
     toRet = []
     fillings = []
@@ -22,6 +29,7 @@ def getElemUTn(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
         toRet.append(getUTnMatFromList(n, f, filling))
     return toRet
 
+#This function takes a list of entries and puts them into the above diagonal entries of a matrix
 def getUTnMatFromList(n: int, f: sage.rings.finite_rings.finite_field_prime_modn, l: list):
     #((n-1)*n)/2 is the number of entries above the diagonal
     if len(l) != ((n-1)*n)/2:
@@ -51,39 +59,61 @@ def getListOfLength(n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
             toRet.append(beginning)
     return toRet
 
+#Given a matrix, this function zeroes out the entries in the list provided
 #Remember, python uses 0 indexed lists, so we have to offset our entries by 1
 def blackout(mat: sage.matrix, entries: list):
     for entry in entries:
         mat[entry[0],entry[1]] = 0
     return mat
 
+
+#This function takes a set of matrices(toSearch) and find all of the conjugacy classes containing elements in that set
+#It also takes a list of entries (toBlackout) that allows us to blackout entries. This makes sure our conjjugacy classes
+#consider two elements to be the same if they are the same in the regions we care about
+#The v flag turns on verbose mode and causes this function to print out results as it finds them
+#We use a depth first approach to finding all elements of the conjugacy class as each element in the
+#conjugacy class can be find by successivly conjugating by the elementary elements of UTn, that is the
+#elements with exctly one 1 above the diagonal.
 def getConjClasses(toSearch, toBlackout, n,f, v=False):
     found = []
     classes = []
     conjugators = getElemUTn(n,f)
+    #We need to search through all the elements in toSearch to find new classes
     for mat in toSearch:
+        #if we havent found the element yet, then the element must be in a new conjugacy class
+        #so, we go through and find all the elements in the class
         if mat not in found:
             if v:
                 print("Found new class with rep:")
                 print(mat)
-                print("Current number of classes: " + str(len(classes)+1)) #have to add one since current isn' added yet
+                print("Current number of classes: " + str(len(classes)+1)) #have to add one since current isn't added yet
+            #Because we want to check all possible sequences of actions by elementary matrices, we need to start a stack to 
+            #keep track of the elements we haven't explored yet
             stack = [mat]
             found.append(mat)
             conjClass = [mat]
+            #Here we want to keep applying elementary matrices until we don't have any new candidates to search
             while len(stack) > 0:
                 n = stack.pop()
                 for c in conjugators:
                     raw = c*n*c.inverse()
                     current = blackout(raw,toBlackout)
+                    #We check conjClass rather than found here for speed
+                    #Because our conjugacy classes are closed under the conjugation action, we can tell if we've already
+                    #found a matrix by checking the conjClass. This allows us to avoid searching through the found list,
+                    #which would take forever
                     if current not in conjClass:
                         found.append(current)
                         conjClass.append(current)
                         stack.append(current)
+            #now that we've exited the loop, we know we've found all of the elements of the conjugacy class
             classes.append(conjClass)
             if v:
                 print("This conjugacy class has size: " + str(len(conjClass)))
     return classes
 
+#This is a function that blacks out all entries on the diagonal and above. 
+#This cooresponds to the case where we have a staricase in the bottom left corner
 def blackoutForBottomLeft(mat: sage.matrix, n: int):
     toBlackout = []
     for i in range(n):
@@ -92,6 +122,11 @@ def blackoutForBottomLeft(mat: sage.matrix, n: int):
                 toBlackout.append([i,j])
     return blackout(mat, toBlackout)
 
+#This function starts with a zero matrix and fills in the entries provided with the elements in the to fill list
+# for example the inputs ([1,0,1],[[0,1],[0,2],[1,2]],3,f) would make the matrix
+#|0 1 0|
+#|0 0 1|
+#|0 0 0|
 def fillMatFromList(toFill: list, entries: list, n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
     if len(toFill) != len(entries):
         raise NameError('Inputs must have the same length')
@@ -103,6 +138,12 @@ def fillMatFromList(toFill: list, entries: list, n: int, f: sage.rings.finite_ri
 
     return mat
 
+#This takes a list of entries and generates all matrices whose only non-zero entries are
+#in the list of entries provided. For example, giving the function the list [[0,1],[0,2],[1,2]]
+#would make the set of matrices
+#|0 * *|
+#|0 0 *|
+#|0 0 0|
 def getMatsOfShape(shape: list, n: int, f: sage.rings.finite_rings.finite_field_prime_modn):
     toRet = []
     fillings = getListOfLength(len(shape),f)
@@ -110,6 +151,10 @@ def getMatsOfShape(shape: list, n: int, f: sage.rings.finite_rings.finite_field_
         toRet.append(fillMatFromList(shape, filling, n, f))
     return toRet
 
+
+#Takes a list of classes and prints each class seperated by ######
+#It also prints the size of the class and the total number of classes
+#Generaly, this function will be fed the output of the getConjClass function
 def printClasses(classes):
     for c in classes:
         print("Size: " + str(len(c)))
