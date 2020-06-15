@@ -70,35 +70,73 @@ def isRookByCols(mat, n):
                 count += int(1)
         if count > 1:
             return False
-    return True 
+    return True
+
+def addColToCol(mat, h, c1, c2):
+    for i in range(h):
+        mat[i,c2] += mat[i,c1]
+
+def addRowToRow(mat, w, r1, r2):
+    for i in range(w):
+        mat[r1,i] += mat[r2,i]
+
+#Currently only works for p=2
+def clearRow(mat, w, h, r):
+    leftmost = getLeftmost(mat,w,r)
+    if(leftmost > -1):
+        for i in range(leftmost+1, w):
+            if mat[r,i] > 0:
+                addColToCol(mat, h, leftmost, i)
+
+def getLeftmost(mat, w, r):
+    for i in range(w):
+        if mat[r,i] > 0:
+            return i
+    return -1
+
+def addUpAfterClear(mat, w, r):
+    leftmost = getLeftmost(mat, w, r)
+    if leftmost > -1:
+        for i in range(r):
+            if  mat[i, leftmost] > 0:
+                addRowToRow(mat, w, i, r)
+
+def getRookClass(mat, w, h):
+    for i in range(h-1):
+        r = h - i - 1
+        clearRow(mat, w, h, r)
+        addUpAfterClear(mat, w, r)
+    clearRow(mat, w, h, 0)
 
 p = 2
 f = GF(p)
-n = 10
+n = 8
 M = MatrixSpace(f,n,n)
 
-
-path = [[0,4],[0,5],[1,4],[1,5],[2,4],[2,5],[3,4],[3,5],[4,6],[4,7],[4,8],[4,9],[5,6],[5,7],[5,8],[5,9]]
-#path = [[0,1],[0,2],[0,3],[1,3],[2,3],[2,4],[2,5],[3,5],[4,5]]
-blackout = getBoxesAbovePath(path, n)
-print(blackout)
-print("Getting mats")
-mats = getMatsOfShape(path, n, f)
-print("Getting classes")
-
-classes = getConjClasses(mats,blackout,n,f)
-
-mat = matrix(f, [[0,0,1,0,0,0],[0,0,1,1,0,0],[0,0,0,0,0,1],[0,0,0,0,1,0],[0,0,0,0,0,0],[0,0,0,0,0,0]])
-count = 0
-for c in classes:    
-    mat = c[0]
-    if((not isRookByRows(mat,n)) or (not isRookByCols(mat,n))):
-        count += 1
-        print(mat)
-        print("------------")
-
+path = [[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,6],[2,7],[3,6],[3,7],[4,6],[4,7],[5,6],[5,7]]
+#path = [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[3,6],[3,7],[3,8],[4,6],[4,7],[4,8],[5,6],[5,7],[5,8]]
+b = getBoxesAbovePath(path,n)
+toSearch = getMatsOfShape(path,n,f)
+classes = getConjClasses(toSearch, b, n, f)
+reps = []
 for c in classes:
-    print(c[0])
-    print("----------------")
+    reps.append(c[0])
 
-print("Total non-rook: " + str(count))
+d = {}
+for r in reps:
+    getRookClass(r,n,n)
+    r.set_immutable()
+    if r in d.keys():
+        d[r] += 1
+    else:
+        d[r] = 1
+
+l = 0
+for k in d.keys():    
+    i = d[k]
+    if not math.log(i, 2).is_integer():
+        print(k)
+        print(i)
+        print("-------")
+        l+=1
+print(l)
