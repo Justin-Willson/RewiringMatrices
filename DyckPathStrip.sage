@@ -149,7 +149,7 @@ M = MatrixSpace(f,n,n)
 
 print("Running")
 
-mat = copy(M.zero_matrix())
+mat = copy(M.zero_matrix(), sparse=True)
 # mat[0,3] = 1
 # mat[1,2] = 1
 # mat[3,4] = 1
