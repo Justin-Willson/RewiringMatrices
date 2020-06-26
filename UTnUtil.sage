@@ -75,38 +75,41 @@ def blackout(mat: sage.matrix, entries: list):
 #conjugacy class can be find by successivly conjugating by the elementary elements of UTn, that is the
 #elements with exctly one 1 above the diagonal.
 def getConjClasses(toSearch, toBlackout, n,f, v=False):
-    found = []
+    found = set()
     classes = []
-    conjugators = getElemUTn(n,f)
-    #We need to search through all the elements in toSearch to find new classes
+    lefts = getElemUTn(n,f)
+    rights = []
+    for i in range( len(lefts) ):
+        rights.append(lefts[i].inverse())
+
     for mat in toSearch:
-        #if we havent found the element yet, then the element must be in a new conjugacy class
-        #so, we go through and find all the elements in the class
-        if mat not in found:
+        mat.set_immutable()
+        if mat not in found:            
             if v:
                 print("Found new class with rep:")
                 print(mat)
                 print("Current number of classes: " + str(len(classes)+1)) #have to add one since current isn't added yet
-            #Because we want to check all possible sequences of actions by elementary matrices, we need to start a stack to 
-            #keep track of the elements we haven't explored yet
+
             stack = [mat]
-            found.append(mat)
-            conjClass = [mat]
-            #Here we want to keep applying elementary matrices until we don't have any new candidates to search
+            found.add(mat)
+            conjClass = set()
+            conjClass.add(mat)
             while len(stack) > 0:
                 n = stack.pop()
-                for c in conjugators:
-                    raw = c*n*c.inverse()
-                    current = blackout(raw,toBlackout)
-                    #We check conjClass rather than found here for speed
-                    #Because our conjugacy classes are closed under the conjugation action, we can tell if we've already
-                    #found a matrix by checking the conjClass. This allows us to avoid searching through the found list,
-                    #which would take forever
+                mightAdd = []
+                for i in range( len(lefts) ):
+                    raw = lefts[i]*n*rights[i]
+                    current = blackout(raw, toBlackout)
+                    if current not in mightAdd:
+                        mightAdd.append(current)
+
+                for current in mightAdd:
+                    current.set_immutable()
                     if current not in conjClass:
-                        found.append(current)
-                        conjClass.append(current)
+                        found.add(current)
+                        conjClass.add(current)
                         stack.append(current)
-            #now that we've exited the loop, we know we've found all of the elements of the conjugacy class
+
             classes.append(conjClass)
             if v:
                 print("This conjugacy class has size: " + str(len(conjClass)))

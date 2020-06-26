@@ -1,5 +1,8 @@
 import os
 import itertools
+import threading
+import queue
+
 os.system('sage --preparse UTnUtil.sage')
 os.system('mv UTnUtil.sage.py UTnUtil.py')
 from UTnUtil import *
@@ -15,8 +18,6 @@ def getHook(n,h):
         toRet.append([i,n-1])
 
     return toRet
-
-print("Running")
 
 def getBoxesAbovePath(path, n):
     rows = {}
@@ -108,35 +109,66 @@ def getRookClass(mat, w, h):
         addUpAfterClear(mat, w, r)
     clearRow(mat, w, h, 0)
 
+
+
+def getRookClassElements(rookMat,b,n,f):
+    elem = getElemUTn(n,f)
+    found = set()
+    stack = [rookMat]
+    count = 0
+    while(len(stack) > 0):
+        current = stack.pop()
+        n = []
+        for e in elem:
+            #Compute next nodes in graph
+            tempLeft = e*current
+            tempRight = current*e
+            left = blackout(tempLeft,b)
+            right = blackout(tempRight,b)
+
+            
+            n.append(left)
+            if left != right:
+                n.append(right)
+
+        for toCheck in n:  #check to see if we've found the new element
+            toCheck.set_immutable()
+            if toCheck not in found:                
+                found.add(toCheck)
+                stack.append(toCheck)
+                count += 1
+                if count % 100 == 0:
+                    print(count)
+
+    return found
+
 p = 2
 f = GF(p)
-n = 8
+n = 11
 M = MatrixSpace(f,n,n)
 
-path = [[0,2],[0,3],[0,4],[0,5],[1,2],[1,3],[1,4],[1,5],[2,6],[2,7],[3,6],[3,7],[4,6],[4,7],[5,6],[5,7]]
-#path = [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[3,6],[3,7],[3,8],[4,6],[4,7],[4,8],[5,6],[5,7],[5,8]]
-b = getBoxesAbovePath(path,n)
-toSearch = getMatsOfShape(path,n,f)
-classes = getConjClasses(toSearch, b, n, f)
-reps = []
-for c in classes:
-    reps.append(c[0])
+print("Running")
 
-d = {}
-for r in reps:
-    getRookClass(r,n,n)
-    r.set_immutable()
-    if r in d.keys():
-        d[r] += 1
-    else:
-        d[r] = 1
+mat = copy(M.zero_matrix())
+# mat[0,3] = 1
+# mat[1,2] = 1
+# mat[3,4] = 1
+# b = [[0,4],[0,5],[1,4],[1,5]]
+mat[0,3] = 1
+mat[1,5] = 1
+mat[2,4] = 1
+mat[4,10] = 1
+mat[6,8] = 1
+mat[7,9] = 1
 
-l = 0
-for k in d.keys():    
-    i = d[k]
-    if not math.log(i, 2).is_integer():
-        print(k)
-        print(i)
-        print("-------")
-        l+=1
-print(l)
+b = [[0,9],[0,10],[1,9],[1,10],[2,9],[2,10],[3,9],[3,10]]
+
+toSearch = getRookClassElements(mat,b,n,f)
+print(mat)
+print("Searching for conj classes")
+reps = getConjClasses(toSearch, b, n,f, True)
+for c in reps:
+    print(c)
+    print("-----")
+
+print(len(reps))
